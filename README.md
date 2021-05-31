@@ -90,7 +90,7 @@ require('@babel/register')({
 require('./server');
 ```
 
-## `Make a Script to run node server in package.json:`
+#### `Make a Script to run node server in package.json:`
 
 ```javascript
 "scripts": {
