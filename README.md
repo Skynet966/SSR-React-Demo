@@ -1,70 +1,110 @@
-# Getting Started with Create React App
-
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+#### Create Simple App with npx create-react-app app-name
 
-In the project directory, you can run:
+Change the code in src/index.js file
 
-### `npm start`
+```javascript
+ReactDOM.render(<App />, document.getElementById('root'));
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+ replace with
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+ReactDOM.hydrate(<App />, document.getElementById('root'));
 
-### `npm test`
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### `Install Expree with below command `
 
-### `npm run build`
+```javascript
+npm install express
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### `Install babel,babel-react and ignore-style with below command `
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```javascript
+npm install @babel/register @babel/preset-env @babel/preset-react ignore-styles
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
 
-### `npm run eject`
+#### `Create a new folder called server, then go into it and create a file named server.js `
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```javascript
+//Express server to serve app
+import express from 'express';
+//Fs to enable file reading/writing
+import fs from 'fs';
+//Path to resolve the directory path
+import path from 'path';
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+//React and ReactDOMServer to enable support of react on server-side
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+//App use to render the application on server
+import App from '../src/App';
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+//Port where app will serve while running
+const PORT = 8000;
 
-## Learn More
+const app = express();
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+//Serve app from root URI
+app.use('^/$', (req, res) => {
+	fs.readFile(path.resolve('./build/index.html'), 'utf-8', (err, data) => {
+		if (err) {
+			console.log('Error occure while reading file from build folder :::', err);
+			return res.status(500).send('Something went wrong on server!!!');
+		} else {
+			return res.send(
+				data.replace(
+					`<div id="root"></div>`,
+					`<div id="root">${ReactDOMServer.renderToString(<App />)}</div>`
+				)
+			);
+		}
+	});
+});
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+//provide static path
+app.use(express.static(path.resolve(__dirname, '..', 'build')));
 
-### Code Splitting
+//Starting the server on CUSTOM PORT
+app.listen(PORT, () =>
+	console.log(`SSR App is running, URL:: http://localhost:${PORT}/`)
+);
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+#### `Let’s create an entry point in server/index.js:`
 
-### Analyzing the Bundle Size
+```javascript
+//Ignore to serve styles files
+require('ignore-styles');
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+//register the app to convert jsx and env files
+require('@babel/register')({
+	ignore: [/(node_module)/],
+	presets: ['@babel/preset-env', '@babel/preset-react']
+});
 
-### Making a Progressive Web App
+//import server to run from this file
+require('./server');
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## `Make a Script to run node server in package.json:`
 
-### Advanced Configuration
+```javascript
+"scripts": {
+	...
+	"ssr": "node server/index.js"
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
 
-### Deployment
+## `Make Build file while running first time and then run the script with npm ssr:`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```javascript
 
-### `npm run build` fails to minify
+npm run build
+npm run ssr
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
