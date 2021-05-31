@@ -18,7 +18,7 @@ const PORT = 8000;
 const app = express();
 
 //Serve app from root URI
-app.use('/', (req, res) => {
+app.use('^/$', (req, res) => {
 	fs.readFile(path.resolve('./build/index.html'), 'utf-8', (err, data) => {
 		if (err) {
 			console.log('Error occure while reading file from build folder :::', err);
